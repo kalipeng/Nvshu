@@ -24,7 +24,6 @@ This project honors the legacy of Nüshu by combining traditional women's script
 - **Image Upload**: Upload images for object detection with Nüshu character overlay
 - **Webcam Detection**: Real-time object detection using your camera
 - **Nüshu Character Gallery**: View all available Nüshu character mappings
-- **Beautiful UI**: Modern, responsive web interface with gradient backgrounds
 
 ## Setup
 
@@ -98,11 +97,11 @@ The system can detect and map Nüshu characters for various objects including:
 
 The system uses YOLOv8 nano by default for fast processing. You can change the model in the code for different accuracy/speed trade-offs:
 
-- **yolov8n.pt** (nano) - Fastest, good accuracy ⚡
+- **yolov8n.pt** (nano) - Fastest, good accuracy 
 - **yolov8s.pt** (small) - Balanced speed and accuracy
 - **yolov8m.pt** (medium) - Higher accuracy, slower
 - **yolov8l.pt** (large) - Very high accuracy, slower
-- **yolov8x.pt** (extra large) - Highest accuracy, slowest 🎯
+- **yolov8x.pt** (extra large) - Highest accuracy, slowest 
 
 To change the model, edit line 108 in `nushu_web_app.py`:
 ```python
