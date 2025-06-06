@@ -6,7 +6,7 @@ A Flask-based web application that detects objects in images and displays them w
 
 Nüshu, literally meaning "women's writing" in Chinese, is considered the world's only writing system created and used exclusively by women. This unique script originated in China's Jiangyong county, Hunan province, during the 19th century among rural women in the Xiao River valley.
 
-This remarkable writing system served as an emotional outlet and source of hope for women in traditional Chinese society. Through Nüshu, women could express their feelings, share stories, and support each other in a way that was uniquely their own. The script is characterized by its elegant, diamond-shaped characters written with delicate, thread-like strokes.
+This remarkable writing system served as an emotional outlet and source of hope for women in traditional Chinese society. Through Nüshu, women could express their feelings, share stories, and support each other in a way that was uniquely their own. 
 
 ### Acknowledgments
 
