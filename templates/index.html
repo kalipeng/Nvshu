@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nüshu Object Detection Archive</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: #f8f8f8;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: #fff;
+            border-bottom: 1px solid #ddd;
+            padding: 30px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .main-title {
+            font-size: 36px;
+            font-weight: 300;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .upload-section {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 60px 20px;
+            margin: 20px 0;
+            background: #fafafa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #999;
+            background: #f0f0f0;
+        }
+
+        .upload-area.dragover {
+            border-color: #666;
+            background: #eee;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #ccc;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background: #555;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .webcam-section {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 40px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .result-card {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .result-header {
+            background: #f8f8f8;
+            padding: 15px 20px;
+            border-bottom: 1px solid #ddd;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .result-content {
+            padding: 20px;
+        }
+
+        .result-image {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .detection-list {
+            list-style: none;
+        }
+
+        .detection-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .detection-item:last-child {
+            border-bottom: none;
+        }
+
+        .nushu-character {
+            width: 40px;
+            height: 40px;
+            margin-right: 15px;
+            border-radius: 4px;
+            object-fit: contain;
+            background: #f8f8f8;
+            padding: 5px;
+        }
+
+        .detection-info {
+            flex-grow: 1;
+        }
+
+        .detection-class {
+            font-weight: 500;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .detection-confidence {
+            font-size: 12px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #333;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border: 1px solid #fcc;
+            border-radius: 4px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .gallery-section {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 40px;
+            margin-top: 40px;
+            display: none;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .gallery-item {
+            text-align: center;
+            padding: 15px;
+            border: 1px solid #f0f0f0;
+            border-radius: 4px;
+            transition: border-color 0.3s ease;
+        }
+
+        .gallery-item:hover {
+            border-color: #ddd;
+        }
+
+        .gallery-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+
+        .gallery-label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .video-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        #video {
+            max-width: 100%;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .action-buttons {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        @media (max-width: 968px) {
+            .content-grid, .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">Nüshu Detection Archive</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 class="main-title">Digital Nüshu Object Detection</h1>
+        <p class="subtitle">Experimental publishing informed by digital technology</p>
+
+        <div class="content-grid">
+            <div class="upload-section">
+                <h2 class="section-title">Upload Image</h2>
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📎</div>
+                    <div class="upload-text">Select or drop image file</div>
+                    <input type="file" id="fileInput" class="file-input" accept="image/*">
+                    <button onclick="document.getElementById('fileInput').click()" class="btn">Browse Files</button>
+                </div>
+            </div>
+
+            <div class="webcam-section">
+                <h2 class="section-title">Live Camera</h2>
+                <div class="status" id="status">Camera ready for object detection</div>
+                <div class="controls">
+                    <button id="startCamera" class="btn">Start Camera</button>
+                    <button id="captureFrame" class="btn btn-secondary" style="display:none;">Capture</button>
+                    <button id="stopCamera" class="btn btn-secondary" style="display:none;">Stop</button>
+                </div>
+                <div class="video-container">
+                    <video id="video" width="300" height="200" autoplay playsinline style="display:none;"></video>
+                    <canvas id="canvas" width="300" height="200" style="display:none;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button onclick="toggleGallery()" class="btn btn-secondary">View Character Library</button>
+        </div>
+
+        <div class="error" id="errorMessage"></div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing with Nüshu detection system...</p>
+        </div>
+
+        <div class="results-grid" id="resultsGrid" style="display:none;">
+            <div class="result-card">
+                <div class="result-header">Original Image</div>
+                <div class="result-content">
+                    <img id="originalImage" src="" alt="Original" class="result-image">
+                </div>
+            </div>
+
+            <div class="result-card">
+                <div class="result-header">Detected Objects</div>
+                <div class="result-content">
+                    <img id="resultImage" src="" alt="Result" class="result-image">
+                </div>
+            </div>
+
+            <div class="result-card">
+                <div class="result-header">Character Mappings</div>
+                <div class="result-content">
+                    <ul class="detection-list" id="detectionsList"></ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-section" id="gallerySection">
+            <h2 class="section-title">Nüshu Character Library</h2>
+            <div class="gallery-grid" id="galleryGrid"></div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const loading = document.getElementById('loading');
+        const resultsGrid = document.getElementById('resultsGrid');
+        const errorMessage = document.getElementById('errorMessage');
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let stream = null;
+
+        // File upload functionality
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showError('Please select an image file.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            showLoading();
+            hideError();
+            hideResults();
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.success) {
+                    showResults(data);
+                } else {
+                    showError(data.error || 'An error occurred processing the image.');
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                showError('Network error: ' + error.message);
+            });
+        }
+
+        // Camera functionality
+        document.getElementById('startCamera').addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 640, height: 480 } 
+                });
+                
+                video.srcObject = stream;
+                video.style.display = 'block';
+                
+                document.getElementById('startCamera').style.display = 'none';
+                document.getElementById('captureFrame').style.display = 'inline-block';
+                document.getElementById('stopCamera').style.display = 'inline-block';
+                
+                document.getElementById('status').textContent = 'Camera active - click Capture to analyze frame';
+                
+            } catch (err) {
+                showError('Error accessing camera: ' + err.message);
+            }
+        });
+
+        document.getElementById('captureFrame').addEventListener('click', () => {
+            if (!stream) return;
+            
+            // Draw current video frame to canvas
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Convert to blob and process
+            canvas.toBlob(async (blob) => {
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const imageData = e.target.result;
+                    
+                    showLoading();
+                    
+                    try {
+                        const response = await fetch('/process_webcam_frame', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ image: imageData })
+                        });
+                        
+                        const data = await response.json();
+                        hideLoading();
+                        
+                        if (data.success) {
+                            // Show webcam results
+                            document.getElementById('originalImage').src = imageData;
+                            document.getElementById('resultImage').src = data.result_image;
+                            updateDetectionsList(data.detections);
+                            resultsGrid.style.display = 'grid';
+                        } else {
+                            showError(data.error || 'Error processing frame');
+                        }
+                        
+                    } catch (err) {
+                        hideLoading();
+                        showError('Error processing frame: ' + err.message);
+                    }
+                };
+                reader.readAsDataURL(blob);
+            }, 'image/jpeg', 0.8);
+        });
+
+        document.getElementById('stopCamera').addEventListener('click', () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            video.style.display = 'none';
+            video.srcObject = null;
+            
+            document.getElementById('startCamera').style.display = 'inline-block';
+            document.getElementById('captureFrame').style.display = 'none';
+            document.getElementById('stopCamera').style.display = 'none';
+            
+            document.getElementById('status').textContent = 'Camera ready for object detection';
+        });
+
+        function showLoading() {
+            loading.style.display = 'block';
+        }
+
+        function hideLoading() {
+            loading.style.display = 'none';
+        }
+
+        function showResults(data) {
+            document.getElementById('originalImage').src = data.original_image;
+            document.getElementById('resultImage').src = data.result_image;
+            updateDetectionsList(data.detections);
+            resultsGrid.style.display = 'grid';
+        }
+
+        function updateDetectionsList(detections) {
+            const list = document.getElementById('detectionsList');
+            list.innerHTML = '';
+
+            if (detections.length === 0) {
+                list.innerHTML = '<li style="text-align: center; color: #666; padding: 20px;">No objects detected</li>';
+            } else {
+                detections.forEach(detection => {
+                    const item = document.createElement('li');
+                    item.className = 'detection-item';
+                    
+                    item.innerHTML = `
+                        <img src="${detection.nushu_image}" alt="Nüshu character" class="nushu-character">
+                        <div class="detection-info">
+                            <div class="detection-class">${detection.class_name}</div>
+                            <div class="detection-confidence">${(detection.confidence * 100).toFixed(1)}% confidence</div>
+                        </div>
+                    `;
+                    
+                    list.appendChild(item);
+                });
+            }
+        }
+
+        function hideResults() {
+            resultsGrid.style.display = 'none';
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        function hideError() {
+            errorMessage.style.display = 'none';
+        }
+
+        function toggleGallery() {
+            const gallery = document.getElementById('gallerySection');
+            const grid = document.getElementById('galleryGrid');
+
+            if (gallery.style.display === 'none' || gallery.style.display === '') {
+                fetch('/nushu_images')
+                .then(response => response.json())
+                .then(data => {
+                    grid.innerHTML = '';
+                    data.images.forEach(item => {
+                        const galleryItem = document.createElement('div');
+                        galleryItem.className = 'gallery-item';
+                        galleryItem.innerHTML = `
+                            <img src="${item.image}" alt="${item.class_name}">
+                            <div class="gallery-label">${item.class_name}</div>
+                        `;
+                        grid.appendChild(galleryItem);
+                    });
+                    gallery.style.display = 'block';
+                })
+                .catch(error => {
+                    showError('Error loading character library: ' + error.message);
+                });
+            } else {
+                gallery.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html> 

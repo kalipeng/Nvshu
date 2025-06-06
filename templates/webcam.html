@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nüshu Object Detection - Webcam</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            padding: 30px;
+            text-align: center;
+            color: #333;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.8;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .navigation {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+        }
+
+        .webcam-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .video-container {
+            text-align: center;
+        }
+
+        .video-container h3 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        #video, #canvas {
+            max-width: 100%;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        #canvas {
+            display: none;
+        }
+
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .detections-panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            height: fit-content;
+        }
+
+        .detections-panel h3 {
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+
+        .detection-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .nushu-character {
+            width: 50px;
+            height: 50px;
+            margin-right: 15px;
+            border-radius: 8px;
+            object-fit: contain;
+            background: white;
+            padding: 5px;
+        }
+
+        .detection-info {
+            flex-grow: 1;
+        }
+
+        .detection-class {
+            font-weight: bold;
+            font-size: 1em;
+            color: #333;
+        }
+
+        .detection-confidence {
+            color: #666;
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+
+        .status {
+            text-align: center;
+            padding: 20px;
+            background: #e8f2ff;
+            border-radius: 10px;
+            margin: 20px 0;
+            color: #333;
+        }
+
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .processing {
+            background: #ffeaa7;
+            color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: none;
+            text-align: center;
+        }
+
+        @media (max-width: 1024px) {
+            .webcam-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .main-content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Nüshu Webcam Detection</h1>
+            <p>Real-time object detection with Nüshu characters</p>
+        </div>
+
+        <div class="main-content">
+            <div class="navigation">
+                <a href="/" class="btn btn-secondary">Upload Image</a>
+                <a href="/webcam" class="btn">Use Webcam</a>
+            </div>
+
+            <div class="error" id="errorMessage"></div>
+
+            <div class="status" id="status">
+                Click "Start Camera" to begin real-time object detection
+            </div>
+
+            <div class="webcam-section">
+                <div class="video-container">
+                    <h3>Live Camera Feed</h3>
+                    <video id="video" width="640" height="480" autoplay playsinline></video>
+                    <canvas id="canvas" width="640" height="480"></canvas>
+                    
+                    <div class="controls">
+                        <button id="startButton" class="btn">Start Camera</button>
+                        <button id="stopButton" class="btn btn-secondary" style="display: none;">Stop Camera</button>
+                        <button id="captureButton" class="btn btn-secondary" style="display: none;">Capture & Analyze</button>
+                    </div>
+                    
+                    <div class="processing" id="processing">
+                        Processing frame...
+                    </div>
+                </div>
+
+                <div class="detections-panel">
+                    <h3>Live Detections</h3>
+                    <div id="detectionsContainer">
+                        <p style="text-align: center; color: #666;">Start camera to see detections</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const captureButton = document.getElementById('captureButton');
+        const status = document.getElementById('status');
+        const errorMessage = document.getElementById('errorMessage');
+        const processing = document.getElementById('processing');
+        const detectionsContainer = document.getElementById('detectionsContainer');
+
+        let stream = null;
+        let isProcessing = false;
+
+        startButton.addEventListener('click', startCamera);
+        stopButton.addEventListener('click', stopCamera);
+        captureButton.addEventListener('click', captureAndAnalyze);
+
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: 640, 
+                        height: 480,
+                        facingMode: 'environment' // Try to use back camera on mobile
+                    } 
+                });
+                
+                video.srcObject = stream;
+                
+                startButton.style.display = 'none';
+                stopButton.style.display = 'inline-block';
+                captureButton.style.display = 'inline-block';
+                
+                status.textContent = 'Camera is running. Click "Capture & Analyze" to detect objects.';
+                hideError();
+                
+            } catch (err) {
+                showError('Error accessing camera: ' + err.message);
+                console.error('Error accessing camera:', err);
+            }
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            video.srcObject = null;
+            
+            startButton.style.display = 'inline-block';
+            stopButton.style.display = 'none';
+            captureButton.style.display = 'none';
+            
+            status.textContent = 'Camera stopped. Click "Start Camera" to begin.';
+            detectionsContainer.innerHTML = '<p style="text-align: center; color: #666;">Start camera to see detections</p>';
+        }
+
+        async function captureAndAnalyze() {
+            if (isProcessing) return;
+            
+            isProcessing = true;
+            processing.style.display = 'block';
+            
+            // Draw video frame to canvas
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Convert canvas to blob
+            canvas.toBlob(async (blob) => {
+                try {
+                    // Convert blob to base64
+                    const reader = new FileReader();
+                    reader.onload = async function(e) {
+                        const imageData = e.target.result;
+                        
+                        // Send to server for processing
+                        const response = await fetch('/process_webcam_frame', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ image: imageData })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            updateDetections(data.detections);
+                            status.textContent = `Detected ${data.detections.length} objects. Click "Capture & Analyze" again to refresh.`;
+                        } else {
+                            showError(data.error || 'Error processing frame');
+                        }
+                        
+                        processing.style.display = 'none';
+                        isProcessing = false;
+                    };
+                    reader.readAsDataURL(blob);
+                    
+                } catch (err) {
+                    showError('Error processing frame: ' + err.message);
+                    processing.style.display = 'none';
+                    isProcessing = false;
+                }
+            }, 'image/jpeg', 0.8);
+        }
+
+        function updateDetections(detections) {
+            detectionsContainer.innerHTML = '';
+            
+            if (detections.length === 0) {
+                detectionsContainer.innerHTML = '<p style="text-align: center; color: #666;">No objects detected in current frame.</p>';
+            } else {
+                detections.forEach(detection => {
+                    const item = document.createElement('div');
+                    item.className = 'detection-item';
+                    
+                    item.innerHTML = `
+                        <img src="${detection.nushu_image}" alt="Nüshu character" class="nushu-character">
+                        <div class="detection-info">
+                            <div class="detection-class">${detection.class_name}</div>
+                            <div class="detection-confidence">Confidence: ${(detection.confidence * 100).toFixed(1)}%</div>
+                        </div>
+                    `;
+                    
+                    detectionsContainer.appendChild(item);
+                });
+            }
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        function hideError() {
+            errorMessage.style.display = 'none';
+        }
+
+        // Check if browser supports camera
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showError('Your browser does not support camera access. Please use a modern browser.');
+            startButton.disabled = true;
+        }
+    </script>
+</body>
+</html> 
